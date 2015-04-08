@@ -1,0 +1,513 @@
+.stories {
+  box-sizing: border-box;
+}
+.stories *, .stories *:before, .stories *:after {
+  box-sizing: inherit;
+}
+
+$ease-out-quad: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+$fontSize-smaller: 12px;
+$fontSize-small: 14px;
+$fontSize-normal: 16px;
+$fontSize-large: 21px;
+$fontSize-larger: 28px;
+
+
+/**
+    Overall structure of the slideshow
+**/
+.stories {
+  .slides {
+    position: absolute;
+    -webkit-font-smoothing: antialiased;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+  }
+  .viewport {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    -webkit-transform-origin: 0 0;
+            transform-origin: 0 0;
+    overflow: hidden;
+  }
+
+  &.debug:before {
+    height: 0px;
+    width: 100%;
+    position:absolute;
+    border-bottom:1px solid red;
+    top: 50%;
+    content: '';
+    display: block;
+    z-index: 1000;
+  }
+  &.debug .slides {
+    outline: 2px solid red;
+    overflow: visible;
+  }
+}
+
+.stories--viewport-fixed {
+  .slides > section {
+
+  }
+}
+
+.stories--viewport-fluid {
+  .slides > section {
+
+  }
+}
+
+.stories--transition-fade {
+  .slides > section {
+    // Enabling graphics acceleration causes iOs to crash every time
+    // Disabling graphics acceleration causes Desktop Safari to be unusably slow
+    // Disabling slide fade opacity solves all our problems for now
+
+    // // Enable graphics acceleration on Safari (due to opacity transition)
+    // -webkit-transform: translateZ(0);
+    //         transform: translateZ(0);
+    // -webkit-backface-visibility: hidden;
+    //         backface-visibility: hidden;
+    // -webkit-perspective: 1000;
+    //         perspective: 1000;
+
+    // // Slide content transition
+    // transition: opacity 0.3s ease-in-out;
+
+
+    // Stack all slides on top of each other
+    position: absolute;
+    opacity: 0;
+    display: block;
+    pointer-events: none; // Prevent actions on hidden slides
+    &.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+}
+
+.stories--slide-full .slides > section {
+  // Stretch the slides
+  width: 100%;
+  height: 100%;
+}
+
+.stories--slide-cards {
+  .slides > section {
+    position: absolute;
+
+    margin: 0 auto;
+    -webkit-transform-origin: 0 0;
+            transform-origin: 0 0;
+  }
+
+  .viewport .slides {
+    display: none; // Prevent flash of unpositioned content
+  }
+  .viewport.ready .slides {
+    display: block;
+    -webkit-transition: -webkit-transform $ease-out-quad 0.4s;
+            transition: transform $ease-out-quad 0.4s;
+    will-change: transform;
+
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-perspective: 1000;
+    perspective: 1000;
+
+    > section img {
+      -webkit-user-drag: none;
+      user-drag: none;
+    }
+  }
+  .viewport.ready .slides.notransition {
+    -webkit-transition: none !important;
+            transition: none !important;
+  }
+}
+
+.stories .ui-layer.cards-touch {
+  // position: absolute;
+  // top: 0; right: 0; bottom: 0; left: 0;
+  // // background: rgba(128,128,255,0.25);
+  // pointer-events:none;
+}
+
+.stories .ui-layer.control-dock {
+  height: 32px;
+  width: 100%;
+  background: #eee;
+  position: absolute;
+  left: 0; bottom: 0; right: 0;
+
+  display: -webkit-flex;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.stories .control-dock-button-progressBar {
+  -webkit-flex: 1;
+  flex: 1;
+  background: #222; // TODO: better default styles?
+  position: relative;
+
+  .bar-container {
+    cursor: pointer;
+  }
+  .bar-min {
+    position: absolute;
+    top: 0; right: 0; bottom: 0; left: 0;
+    width: 0%;
+    background: #ccc;
+    -webkit-transition: width $ease-out-quad 0.5s;
+            transition: width $ease-out-quad 0.5s;
+  }
+  .bar-max {
+    position: absolute;
+    top: 0; right: 0; bottom: 0; left: 0;
+    width: 0%;
+    background: #ddd;
+
+    display: none;
+  }
+
+  &.theme-tube {
+    // TODO: Bigger hitspace while still being accurate
+    // Right now, the padding is unclickable so that the clicks are accurate
+    .bar-container {
+      position: absolute;
+      top: 30%; bottom: 30%;
+      left: 10px; right: 10px;
+      border-radius: 32px;
+      background: #333;
+    }
+    .bar-min {
+      min-width: 13px; // same as computed height (rounded up)
+      border-radius: 32px;
+    }
+  }
+}
+.stories .control-dock-button-gridView {
+  height: 32px;
+  width: 48px;
+  -webkit-flex: 0 0 auto;
+  flex: 0 0 auto;
+  background-color: #222;
+  cursor: pointer;
+  background-image: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns"><title>grid-view-icon</title><desc>Stellar Storyteller</desc><path d="M10 10h-4v-4h4v4zm-4-6h4v-4h-4v4zm-6 6h4v-4h-4v4zm12-6h4v-4h-4v4zm-2 12v-4h-4v4h4zm-6-4h-4v4h4v-4zm12-6h-4v4h4v-4zm-4 6v4h4v-4h-4zm-8-8v-4h-4v4h4z" sketch:type="MSShapeGroup" fill="#818181"/></svg>');
+  background-repeat: no-repeat;
+  background-position: center center;
+  &:hover {
+    background-color: #333;
+  }
+}
+.stories .control-dock-button-fullScreen {
+-webkit-flex: 0 0 auto;
+flex: 0 0 auto;
+  height: 32px;
+  width: 48px;
+  background-color: #222;
+  cursor: pointer;
+  background-image: url('data:image/svg+xml;utf8,<svg width="22" height="16" viewBox="0 0 22 16" xmlns="http://www.w3.org/2000/svg" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns"><title>fullscreen-icon</title><desc>Stellar Storyteller</desc><path d="M4 4v8h13v-8h-13zm1.025-1.976h-2.984v2.977h-2.042v-5.001h5.025v2.024zm-.005 11.952h-2.979v-2.977h-2.042v5.001h5.02v-2.024zm10.967-11.952h2.984v2.977h2.042v-5.001h-5.025v2.024zm0 11.952h2.979v-2.977h2.042v5.001h-5.02v-2.024z" sketch:type="MSShapeGroup" fill="#818181"/></svg>');
+  background-repeat: no-repeat;
+  background-position: center center;
+  &:hover {
+    background-color: #333;
+  }
+}
+
+.stories .control-dock-button-share {
+  position: relative;
+  -webkit-flex: 0 0 auto;
+  flex: 0 0 auto;
+  height: 32px;
+
+  width: 48px;
+  background-color: #222;
+  cursor: pointer;
+  background-image: url('data:image/svg+xml;utf8,<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns"><defs></defs><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" sketch:type="MSPage"><g id="icon-heart-svg" sketch:type="MSArtboardGroup" transform="translate(-1343.000000, -772.000000)" fill="#818181"><path d="M1354.79266,772 L1351,774.419477 L1347.20734,772 L1343,774.96812 L1343,780.923327 L1351,788 L1359,780.923327 L1359,774.96812 L1354.79266,772 Z" id="favorite-5-icon" sketch:type="MSShapeGroup"></path></g></g></svg>');
+  background-repeat: no-repeat;
+  background-position: center center;
+  &:hover {
+    background-color: #333;
+  }
+}
+.stories .control-dock-button-share {
+  position: relative;
+  -webkit-flex: 0 0 auto;
+  flex: 0 0 auto;
+  height: 32px;
+
+  width: 48px;
+  cursor: pointer;
+  background-repeat: no-repeat;
+  background-position: center center;
+  &:hover, &.is-active {
+    background-color: #333;
+    background-image: url('data:image/svg+xml;utf8,<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns"><defs></defs><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" sketch:type="MSPage"><g id="icon-heart-svg" sketch:type="MSArtboardGroup" transform="translate(-1343.000000, -772.000000)" fill="#08B5E5"><path d="M1354.79266,772 L1351,774.419477 L1347.20734,772 L1343,774.96812 L1343,780.923327 L1351,788 L1359,780.923327 L1359,774.96812 L1354.79266,772 Z" id="favorite-5-icon" sketch:type="MSShapeGroup"></path></g></g></svg>');
+  }
+}
+
+.stories .ui-layer.share {
+  opacity: 0;
+  visibility: hidden;
+  -webkit-transition: visibility 0.2s, opacity 0.2s;
+          transition: visibility 0.2s, opacity 0.2s;
+}
+.stories .ui-layer.share, .share-exitLayer {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  pointer-events: none;
+}
+.ui-layer.share.is-active {
+  visibility: visible;
+  pointer-events: auto;
+  opacity: 1;
+}
+.ui-layer.share.is-active .share-exitLayer {
+  pointer-events: auto;
+  cursor: pointer;
+}
+.share-exitLayer {
+  z-index: 0;
+  background: rgba(0,0,0,0.8);
+
+  &:before {
+    // exit button
+    content: '×';
+    display: inline-block;
+    position: absolute;
+    color: #fff;
+    font-size: 32px;
+    line-height: 0.75;
+    top: 16px;
+    right: 16px;
+  }
+}
+.share-content-title {
+  z-index: 1;
+  font-size: $fontSize-larger;
+  color: #fff;
+  line-height: 1;
+  text-align: center;
+  margin-bottom: 0.5em;
+  &:before {
+    // heart icon
+    content: '';
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    background-image: url('data:image/svg+xml;utf8,<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns"><defs></defs><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" sketch:type="MSPage"><g id="icon-heart-svg" sketch:type="MSArtboardGroup" transform="translate(-1343.000000, -772.000000)" fill="#08B5E5"><path d="M1354.79266,772 L1351,774.419477 L1347.20734,772 L1343,774.96812 L1343,780.923327 L1351,788 L1359,780.923327 L1359,774.96812 L1354.79266,772 Z" id="favorite-5-icon" sketch:type="MSShapeGroup"></path></g></g></svg>');
+    background-size: 24px 24px;
+    background-repeat: no-repeat;
+    margin-right: 12px;
+  }
+}
+.share-content {
+  position: absolute;
+  z-index: 1;
+  top: 48px;
+  bottom: 48px;
+  width: 95%;
+  width: calc(100% - 36px);
+  max-width: 800px;
+  left: 50%;
+  -webkit-transform: translateX(-50%);
+          transform: translateX(-50%);
+
+  display: -webkit-flex;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: column;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  pointer-events: none;
+  > * {
+    pointer-events: auto;
+  }
+}
+.share-content-label {
+  text-transform: uppercase;
+  font-size: $fontSize-small;
+  color: #fff;
+  padding-top: 2em;
+  padding-bottom: 0.5em;
+  letter-spacing: 0.1em;
+}
+.share-content input, .share-content textarea {
+  border: 0;
+  color: #08b5e5;
+  font-size: $fontSize-large;
+  resize: none;
+  padding: 0.25em 0.5em;
+  border-radius: 3px;
+  min-height: 32px;
+  width: 100%;
+}
+.share-content textarea {
+  flex: 1;
+  max-height: 300px;
+}
+
+.stories .ui-layer.display-background {
+  // Stretch to whole viewport
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+}
+
+.stories .ui-layer.control-progressBar-thin {
+  position: absolute;
+  bottom: 0;
+}
+
+.stories .ui-layer.control-progressBar-thin {
+  height: 4px;
+  width: 0%;
+  background: black;
+  transition: width $ease-out-quad 0.5s;
+}
+
+.stories .ui-layer.control-navButtons {
+  .nav-prev, .nav-next {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    height: 100%;
+
+    line-height: 0;
+
+    opacity: 0.5;
+    transition: opacity $ease-out-quad 0.5s;
+
+    &:before {
+      content: '';
+      width: 50px;
+      height: 50px;
+
+      top: 50%;
+      -webkit-transform: translateY(-50%);
+              transform: translateY(-50%);
+
+      position: absolute;
+      border-radius: 50%;
+    }
+    &:hover {
+      cursor: pointer;
+    }
+  }
+  .nav-prev {
+    left: 0;
+    &:before {
+      left: 25px;
+      background: rgba(255,255,255,0.80) url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iNTEycHgiIGlkPSJMYXllcl8xIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjUxMnB4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48cG9seWdvbiBwb2ludHM9IjM1MiwxMjguNCAzMTkuNyw5NiAxNjAsMjU2IDE2MCwyNTYgMTYwLDI1NiAzMTkuNyw0MTYgMzUyLDM4My42IDIyNC43LDI1NiAiLz48L3N2Zz4=) no-repeat;
+      background-position: 3px center;
+      background-size: 80%;
+    }
+  }
+  .nav-next {
+    right: 0;
+    &:before {
+      right: 25px;
+      background: rgba(255,255,255,0.80) url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iNTEycHgiIGlkPSJMYXllcl8xIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjUxMnB4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48cG9seWdvbiBwb2ludHM9IjE2MCwxMjguNCAxOTIuMyw5NiAzNTIsMjU2IDM1MiwyNTYgMzUyLDI1NiAxOTIuMyw0MTYgMTYwLDM4My42IDI4Ny4zLDI1NiAiLz48L3N2Zz4=) no-repeat left;
+      background-position: 6px center;
+      background-size: 80%;
+    }
+  }
+
+  &.first-slide .nav-prev {
+    opacity: 0;
+    &:hover {
+      cursor: default;
+    }
+  }
+
+  &.last-slide .nav-next  {
+    opacity: 0;
+    &:hover {
+      cursor: default;
+    }
+  }
+}
+
+.stories .ui-layer.loadingScreen {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  background: #000;
+  -webkit-transition: visibility 0.4s, opacity 0.4s;
+          transition: visibility 0.4s, opacity 0.4s;
+
+  &.is-loaded {
+    visibility: hidden;
+    pointer-events: none;
+    opacity: 0;
+  }
+  .loadingScreen-container {
+    position: absolute;
+    top: 50%;
+    -webkit-transform: translateY(-50%);
+    transform: translateY(-50%);
+    width: 100%;
+    text-align: center;
+  }
+  .loadingScreen-loadingText {
+    color: #08b5e5;
+    // line-height: 0;
+  }
+  .loadingScreen-loadingBar {
+    position: relative;
+    // top: -10px;
+    width: 300px;
+    margin: 0 auto;
+    border-top: 1px solid #5b6a72;
+  }
+  .loadingScreen-loadingProgress {
+    height: 3px;
+    width: 0%;
+    position: relative;
+    top: -2px;
+    -webkit-transition: width 0.2s;
+            transition: width 0.2s;
+    background: #08b5e5;
+    position: relative;
+  }
+  .loadingScreen-loadingNumber {
+    position: absolute;
+    font-size: 12px;
+    line-height: 1;
+    // top: 4px;
+    top: -3px;
+    left: 100%;
+    color: #08b5e5;
+  }
+}
+.stories .slides {
+  visibility: hidden;
+}
+.stories.is-init .slides {
+  visibility: visible
+}
+
+.stories .ui-layer.titleBar {
+  position: absolute;
+  width: 100%;
+  height: 32px;
+  background: red;
+  border-bottom: 1px solid #333;
+}
